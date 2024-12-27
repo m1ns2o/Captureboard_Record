@@ -9,6 +9,8 @@ import os
 import time
 import subprocess
 
+
+output_filename = ''
 class AudioRecorder:
     def __init__(self, filename, samplerate=44100, channels=2, dtype=np.int16):
         self.filename = filename
@@ -69,13 +71,15 @@ class AudioRecorder:
                 while not self.audio_queue.empty():
                     wf.writeframes(self.audio_queue.get().tobytes())
 
+
 def capture_av(video_device_index=0, resolution=(1920, 1080), fps=60.0):
     """비디오와 시스템 사운드를 동시에 녹화합니다."""
     # 파일 이름 설정
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     video_filename = f"video_{timestamp}.avi"
     audio_filename = f"audio_{timestamp}.wav"
-    output_filename = f"recording_{timestamp}.mp4"
+    global output_filename
+    # output_filename = f"recording_{timestamp}.mp4"
 
     # 비디오 캡처 설정
     cap = cv2.VideoCapture(video_device_index, cv2.CAP_DSHOW)
@@ -182,12 +186,33 @@ def capture_av(video_device_index=0, resolution=(1920, 1080), fps=60.0):
             print("FFmpeg를 설치하거나 개별 파일을 사용하세요:")
             print(f"- 비디오: {os.path.abspath(video_filename)}")
             print(f"- 오디오: {os.path.abspath(audio_filename)}")
+            
+            
+def set_category():
+    category_list = ['의', '식', '주', '소비', '가족', '교육론']
+    for idx, category in enumerate(category_list):
+        print(f'{idx}: {category}')
+        if not os.path.exists(category):
+            # 디렉토리가 없으면 생성
+            os.makedirs(category)
+    category_index = int(input('영역 번호를 입력하세요 : '))
+    return category_list[category_index]
+
+def set_filename(category_name):
+    global output_filename
+    video_number = input('강의 번호를 입력하세요 : ')
+    path_temp = os.path.join(category_name, category_name+'영역_'+video_number+'강').replace('\\', '/')
+    output_filename = f"{path_temp}.mp4"
+    
 
 if __name__ == "__main__":
     # 캡쳐보드 설정
-    device_index = 0  # 기본 캡쳐 장치
+    device_index = 1  # 기본 캡쳐 장치
     resolution = (1920, 1080)  # Full HD
     fps = 60.0  # 60fps
+    
+    category_name = set_category()
+    set_filename(category_name)
 
     print("캡쳐 장치 설정:")
     print(f"- 장치 번호: {device_index}")
