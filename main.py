@@ -11,6 +11,8 @@ import subprocess
 
 
 output_filename = ''
+
+output_filename = ''
 class AudioRecorder:
     def __init__(self, filename, samplerate=44100, channels=2, dtype=np.int16):
         self.filename = filename
