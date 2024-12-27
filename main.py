@@ -12,7 +12,6 @@ import subprocess
 
 output_filename = ''
 
-output_filename = ''
 class AudioRecorder:
     def __init__(self, filename, samplerate=44100, channels=2, dtype=np.int16):
         self.filename = filename
@@ -101,9 +100,12 @@ def capture_av(video_device_index=0, resolution=(1920, 1080), fps=60.0):
         return
 
     # 비디오 writer 설정
+    # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    # out = cv2.VideoWriter(video_filename, fourcc, actual_fps,
+    #                       (actual_width, actual_height))
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter(video_filename, fourcc, actual_fps,
-                          (actual_width, actual_height))
+                     (actual_width, actual_height))
 
     # 오디오 레코더 설정
     audio_recorder = AudioRecorder(audio_filename)
@@ -160,11 +162,23 @@ def capture_av(video_device_index=0, resolution=(1920, 1080), fps=60.0):
 
         # FFmpeg를 사용하여 비디오와 오디오 병합
         try:
+            # subprocess.run([
+            #     'ffmpeg', '-hwaccel', 'qsv',
+            #     '-i', video_filename,
+            #     '-i', audio_filename,
+            #     '-c:v', 'hevc_qsv',
+            #     '-preset', 'medium',
+            #     '-global_quality', '23',
+            #     '-b:v', '3.5M',
+            #     '-c:a', 'aac',
+            #     '-b:a', '256k',
+            #     output_filename
+            # ], check=True)
             subprocess.run([
                 'ffmpeg', '-i', video_filename,
                 '-i', audio_filename,
                 '-c:v', 'copy',
-                '-c:a', 'aac',
+                '-c:a', 'copy',
                 output_filename
             ], check=True)
 
@@ -200,11 +214,29 @@ def set_category():
     category_index = int(input('영역 번호를 입력하세요 : '))
     return category_list[category_index]
 
+# def set_filename(category_name):
+#     global output_filename
+#     video_number = input('강의 번호를 입력하세요 : ')
+#     path_temp = os.path.join(category_name, category_name+'영역_'+video_number+'강').replace('\\', '/')
+#     output_filename = f"{path_temp}.mp4"
+
 def set_filename(category_name):
     global output_filename
-    video_number = input('강의 번호를 입력하세요 : ')
-    path_temp = os.path.join(category_name, category_name+'영역_'+video_number+'강').replace('\\', '/')
+    files = os.listdir(category_name)
+    max_num = 0
+    
+    for file in files:
+        if file.startswith(f'{category_name}영역_') and file.endswith('강.mp4'):
+            try:
+                num = int(file.split('_')[1].replace('강.mp4', ''))
+                max_num = max(max_num, num)
+            except ValueError:
+                continue
+    
+    next_num = max_num + 1
+    path_temp = os.path.join(category_name, f'{category_name}영역_{next_num}강').replace('\\', '/')
     output_filename = f"{path_temp}.mp4"
+    print(f"파일명이 자동으로 설정되었습니다: {output_filename}")
     
 
 if __name__ == "__main__":
